@@ -1,0 +1,161 @@
+# TCP - Vacations App - Programming Data Visualizations that Show User Behavior and Opinions Over Time and Distributions of Usage Intent, and Purchase Intent in R
+# Created by Team - Imagination, SAU MCIS 6333 003 DVP Fall 2023, Southern Arkansas University
+# Created for Dr. Esther Mead, SAU MCIS 6333 DVP Fall 2023
+# Created November 12, 2023
+
+#========================SECTION SEPARATOR
+
+# Dataset source: Visions Data Collection Team. 
+# Original dataset from source is called, “15 - Vacations App - M5 - Group Comparisons.xlsx”; "15 - Vacations App - M1 - Initial dataset.xlsx"; “15 - Vacations App - M2 - Change Over Time.xlsx” and "15 - Vacations App - M4 - Data Distributions.xlsx".
+
+#========================SECTION SEPARATOR
+
+#Use Case:
+### The company Visions want to create a new vactions finder app called  "Welcome Escape"
+### They want to see user behaviour over time and other user-characteristic profile comparison. 
+
+#========================SECTION SEPARATOR
+#install the required packages
+if(!require("rmarkdown")) install.packages("rmarkdown") # An if statement is used for checking the condition (!) that a set of code will require that a package called "rmarkdown" is installed for working with .Rmd files and if so using the install.packages() function to install the package.
+if(!require("ggplot2")) install.packages("ggplot2") # An if statement is used for checking the condition (!) that a set of code will require that a package called "ggplot2" is installed for plotting and if so using the install.packages() function to install the package.
+if(!require("gplots")) install.packages("gplots") # An if statement is used for checking the condition (!) that a set of code will require that a package called "ggplot" is installed for plotting and if so using the install.packages() function to install the package.
+if(!require("dplyr")) install.packages("dplyr") # An if statement is used for checking the condition (!) that a set of code will require that a package called "dplyr" is installed for data manipulation and if so using the install.packages() function to install the package.
+if(!require("hrbrthemes")) install.packages("hrbrthemes") # For installing a package called "hrbrthemes" for using ggplot2 theme components.
+if(!require("viridis")) install.packages("viridis") # For installing a package called "viridis" for using color maps.
+if(!require("scales")) install.packages("scales") # For installing a package called "scales" for creating chart axes labels and legends.
+if(!require("plotly")) install.packages("plotly") # For installing a package called "plotly" for creating interactive charts.
+if(!require("heatmaply")) install.packages("heatmaply") # For installing a package called "heatmaply" for creating interactive heatmaps.
+if(!require("RColorBrewer")) install.packages("RColorBrewer") # For installing a package called "RColorBrewer" for working with color palettes.
+if(!require("readxl")) install.packages("readxl") # For installing a package called "readxl" for reading excel files
+
+# Load required libraries
+library(rmarkdown) # The library() function is used to load a package called "rmarkdown" for working with .Rmd files.
+library(ggplot2) # The library() function is used to load a package called "ggplot2" for plotting.
+library(gplots) # The library() function is used to load a package called "ggplot" for plotting.
+library(dplyr) # The library() function is used to load a package called "dplyr" for data manipulation.
+library(hrbrthemes) # For loading a package called "hrbrthemes" for using ggplot2 theme components.
+library(viridis) # For loading a package called "viridis" for using color maps.
+library(scales) # For loading a package called "scales" for creating chart axes labels and legends.
+library(plotly) # For loading a package called "plotly" for creating interactive charts.
+library("heatmaply") # For loading a package called "heatmaply" for creating interactive heatmaps.
+library("RColorBrewer") # For loading a package called "RColorBrewer" for working with color palettes.
+library("readxl") # For loading a package called "readxl" for working with excel files.
+
+
+#========================SECTION SEPARATOR
+
+#Create a dataframe using the "15 - Vacations App - M1" sheet from M1 dataset
+M1_Data <- read_excel("/cloud/project/TCP/15 - Vacations App - M1 - Initial dataset.xlsx", sheet = "15 - Vacations App - M1")
+M1_DD <- read_excel("/cloud/project/TCP/15 - Vacations App - M1 - Initial dataset.xlsx", sheet = "Data Dictionary")
+#Create a dataframe using the "15 - Vacations App - M2" sheet from M2 dataset
+M2_Data <- read_excel("/cloud/project/TCP/15 - Vacations App - M2 - Change Over Time.xlsx", sheet = "15 - Vacations App - M2")
+M2_DD <- read_excel("/cloud/project/TCP/15 - Vacations App - M2 - Change Over Time.xlsx", sheet = "Data Dictionary")
+#Create a dataframe using the "15 - Vacations App - M4" sheet from M4 dataset
+M4_Data <- read_excel("/cloud/project/TCP/15 - Vacations App - M4 - Data Distributions.xlsx", sheet = "15 - Vacations App - M4")
+M4_DD <- read_excel("/cloud/project/TCP/15 - Vacations App - M4 - Data Distributions.xlsx", sheet = "Data Dictionary")
+#Create a dataframe using the "15 - Vacations App - M5" sheet from M5 dataset
+M5_Data <- read_excel("/cloud/project/TCP/15 - Vacations App - M5 - Group Comparisons.xlsx", sheet = "15 - Vacations App - M5")
+M5_DD <- read_excel("/cloud/project/TCP/15 - Vacations App - M5 - Group Comparisons.xlsx", sheet = "Data Dictionary")
+
+
+#========================SECTION SEPARATOR
+
+# R merge M1 and M2 on ID
+M1_M2 <- merge(M1_Data, M2_Data, by = c("ID"))       # Applying merge() function
+M1_M2 
+
+# Create a new data frame with only the "Q5" and "Date" columns
+income_Date <- M1_M2[c("Q5", "Date")]
+income_Date
+
+# Group the data by "Date" and calculate the average income for each date
+income_grouped_by_date <- income_Date %>%
+  group_by(Date) %>%
+  summarize(Average_Income = mean(Q5, na.rm = TRUE))
+income_grouped_by_date
+
+# Create a line plot for Income_level by Survey Date
+ggplot(income_grouped_by_date, aes(x = Date, y = Average_Income)) +
+  geom_line() +
+   geom_point(color = "black", size = 3) +
+  labs(x = "Survey Date", y = "Income level of Target Customers", title = "Average Income level of Target Customers for the Vacations app based on Survey Date")
+# Save the plot as a JPEG file
+ggsave("1. A2.jpeg",width = 12, height = 6)
+  
+#========================SECTION SEPARATOR
+
+#Create a new variable for mapping the numerical values in q12 column to a string value
+q12_mapping <- c(
+  "0"="Never",
+  "1"="Less than 1 hour",
+  "2"="1 to almost 3 hours",
+  "3"="3 to almost 5 hours",
+  "4"="5 to almost 7 hours",
+  "5"="7 to almost 9 hours",
+  "6"="9 or more hours"
+)
+
+#Create a variable to store Q12 column values in the M4_Data dataframe
+Q12 <- M4_Data$Q12
+#Map the string values and numeric values
+Q12_new <- sapply(Q12, function(x) q12_mapping[[as.character(x)]])
+Q12_new
+M4_Data$Q12 <- Q12_new
+
+#define an order in which the values in Q12 column are shown in the histogram
+q12_order <- c(
+  "Never",
+  "Less than 1 hour",
+  "1 to almost 3 hours",
+  "3 to almost 5 hours",
+  "5 to almost 7 hours",
+  "7 to almost 9 hours",
+  "9 or more hours"
+)
+
+#Plot the histogram
+ggplot(M4_Data, aes(x = factor(Q12, levels = q12_order))) +
+  geom_bar(fill = "blue", color = "black") +
+  labs(x = "Response", y = "Count", title = "How frequently do the target customers watch TV per day?") +
+  scale_x_discrete(limits = q12_order) +  # Set the order of X-axis labels
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate X-axis labels
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))  # Center the title
+ 
+#Save the histogram  
+ggsave("4. A5-histogram.png", width = 12, height = 8)
+
+
+#========================SECTION SEPARATOR
+
+# R merge M1 and M5 on ID
+M1_M5 <- merge(M1_Data, M5_Data, by =c("ID"))
+M1_M5
+
+
+
+#create custom labels for x-axis
+q20_mapping <- c(
+  "0"="Prefer not to disclose",
+  "1"="$499 or less",
+  "2"="$500 to $799",
+  "3"="$800 to $1,999",
+  "4"="$2,000 or more"
+)
+
+# Create the stacked bar chart
+stacked_bar_chart <- ggplot(M1_M5, aes(x = factor(Q20), fill = factor(Q1, levels = c("2", "1")))) +
+  geom_bar(position = "stack") +
+  scale_fill_manual(values = c("1" = "blue", "2" = "orange"), labels = c("1" = "Male", "2" = "Female")) +
+  labs(x = "Budget per person respondents are willing to spend", y = "Number of Respondents", fill = "Gender") +
+  theme_minimal() +
+  scale_x_discrete(labels = q20_mapping) +
+  scale_y_continuous(breaks = seq(0, 35, by = 5)) +
+  guides(fill = guide_legend(title = "Gender"))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+# Save the plot as a PNG file
+ggsave("5. A5stacked_bar_chart.jpg", plot = stacked_bar_chart, width = 15, height = 12, units = "in")
+
+
+#========================SECTION SEPARATOR
